@@ -106,10 +106,6 @@ VRDisplay.prototype.cancelAnimationFrame = function(id) {
 };
 
 VRDisplay.prototype.wrapForFullscreen = function(element) {
-  // Don't wrap in iOS.
-  if (Util.isIOS()) {
-    return element;
-  }
   if (!this.fullscreenWrapper_) {
     this.fullscreenWrapper_ = document.createElement('div');
     var cssProperties = [
@@ -123,6 +119,11 @@ VRDisplay.prototype.wrapForFullscreen = function(element) {
       'z-index: 999999 !important',
       'position: fixed',
     ];
+    if (Util.isIOS()) {
+      // make the wrapper larger than the viewport to allow ios to enter minimal view ui
+      cssProperties[6] = 'padding: 0 10px 10px 0 !important';
+    }
+
     this.fullscreenWrapper_.setAttribute('style', cssProperties.join('; ') + ';');
     this.fullscreenWrapper_.classList.add('webvr-polyfill-fullscreen-wrapper');
   }
@@ -135,11 +136,14 @@ VRDisplay.prototype.wrapForFullscreen = function(element) {
   this.removeFullscreenWrapper();
 
   this.fullscreenElement_ = element;
-  var parent = this.fullscreenElement_.parentElement;
-  parent.insertBefore(this.fullscreenWrapper_, this.fullscreenElement_);
-  parent.removeChild(this.fullscreenElement_);
-  this.fullscreenWrapper_.insertBefore(this.fullscreenElement_, this.fullscreenWrapper_.firstChild);
   this.fullscreenElementCachedStyle_ = this.fullscreenElement_.getAttribute('style');
+  this.fullscreenElementCachedParent_ = this.fullscreenElement_.parentElement;
+
+  // insert wrapper as first element in document body
+  document.body.insertBefore(this.fullscreenWrapper_, document.body.firstChild);
+
+  this.fullscreenElement_.remove();
+  this.fullscreenWrapper_.insertBefore(this.fullscreenElement_, this.fullscreenWrapper_.firstChild);
 
   var self = this;
   function applyFullscreenElementStyle() {
@@ -181,7 +185,7 @@ VRDisplay.prototype.removeFullscreenWrapper = function() {
 
   var parent = this.fullscreenWrapper_.parentElement;
   this.fullscreenWrapper_.removeChild(element);
-  parent.insertBefore(element, this.fullscreenWrapper_);
+  this.fullscreenElementCachedParent_.insertBefore(element, this.fullscreenElementCachedParent_.firstChild);
   parent.removeChild(this.fullscreenWrapper_);
 
   return element;
@@ -281,7 +285,7 @@ VRDisplay.prototype.requestPresent = function(layers) {
             screen.orientation.unlock();
             Util.orientationLockedToLandscape = false;
           }
-          self.removeFullscreenWrapper();
+          
           self.wakelock_.release();
           self.endPresent_();
           self.removeFullscreenListeners_();

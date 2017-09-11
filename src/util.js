@@ -276,10 +276,10 @@ Util.safariCssSizeWorkaround = function(canvas) {
   //  for hate's sake I spit my last breath at thee."
   // -- Moby Dick, by Herman Melville
   if (Util.isIOS()) {
-    var width = canvas.style.width;
-    var height = canvas.style.height;
-    canvas.style.width = (parseInt(width) + 1) + 'px';
-    canvas.style.height = (parseInt(height)) + 'px';
+    var width = canvas.style.width || canvas.clientWidth;
+    var height = canvas.style.height || canvas.clientHeight;
+    canvas.style.width = (parseInt(width) + 1) + 'px !important';
+    canvas.style.height = (parseInt(height)) + 'px !important';
     setTimeout(function() {
       canvas.style.width = width;
       canvas.style.height = height;

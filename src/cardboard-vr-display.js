@@ -193,12 +193,13 @@ CardboardVRDisplay.prototype.endPresent_ = function() {
   }
 
   if (this.rotateInstructions_) {
-    this.rotateInstructions_.hide();
+    this.rotateInstructions_.hide(true);
   }
   this.viewerSelector_.hide();
 
   window.removeEventListener('orientationchange', this.orientationHandler);
   window.removeEventListener('vrdisplaypresentchange', this.vrdisplaypresentchangeHandler);
+  this.removeFullscreenWrapper();
 };
 
 CardboardVRDisplay.prototype.submitFrame = function(pose) {
@@ -246,15 +247,14 @@ CardboardVRDisplay.prototype.onResize_ = function(e) {
     // Additionally, 'box-sizing: content-box' ensures renderWidth = width + padding.
     // This is required when 'box-sizing: border-box' is used elsewhere in the page.
     var cssProperties = [
-      'position: absolute',
-      'top: 0',
-      'left: 0',
-      'width: ' + Math.max(screen.width, screen.height) + 'px',
-      'height: ' + Math.min(screen.height, screen.width) + 'px',
-      'border: 0',
-      'margin: 0',
-      'padding: 0 10px 10px 0',
-      'box-sizing: content-box',
+      'position: absolute !important',
+      'top: 0 !important',
+      'left: 0 !important',
+      'width: ' + Math.max(screen.width, screen.height) + 'px !important',
+      'height: ' + Math.min(screen.height, screen.width) + 'px !important',
+      'border: 0 !important',
+      'margin: 0 !important',
+      'box-sizing: content-box !important',
     ];
     gl.canvas.setAttribute('style', cssProperties.join('; ') + ';');
 

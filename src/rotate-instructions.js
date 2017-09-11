@@ -18,8 +18,22 @@ var Util = require('./util.js');
 function RotateInstructions() {
   this.loadIcon_();
 
+  // add a treadmill element for iOS to enter minimal ui
+  this.baseInstructionText =  'Place your phone into your Cardboard viewer.';
+
+  var treadmill = document.createElement('div');
+  var s = treadmill.style;
+  s.position = 'absolute';
+  s.top = 0;
+  s.right = 0;
+  s.left = 0;
+  s.height = '99999999999px';
+  s.display = 'block';
+  s.visibility = 'hidden';
+  s.zIndex = 999999 + 2
+
   var overlay = document.createElement('div');
-  var s = overlay.style;
+  s = overlay.style;
   s.position = 'fixed';
   s.top = 0;
   s.right = 0;
@@ -28,28 +42,28 @@ function RotateInstructions() {
   s.backgroundColor = 'gray';
   s.fontFamily = 'sans-serif';
   // Force this to be above the fullscreen canvas, which is at zIndex: 999999.
-  s.zIndex = 1000000;
+  s.zIndex = 999999 + 1;
 
   var img = document.createElement('img');
   img.src = this.icon;
-  var s = img.style;
+  s = img.style;
   s.marginLeft = '25%';
   s.marginTop = '25%';
   s.width = '50%';
   overlay.appendChild(img);
 
   var text = document.createElement('div');
-  var s = text.style;
+  s = text.style;
   s.textAlign = 'center';
   s.fontSize = '16px';
   s.lineHeight = '24px';
   s.margin = '24px 25%';
   s.width = '50%';
-  text.innerHTML = 'Place your phone into your Cardboard viewer.';
   overlay.appendChild(text);
+  this.instructionTextElement = text;
 
   var snackbar = document.createElement('div');
-  var s = snackbar.style;
+  s = snackbar.style;
   s.backgroundColor = '#CFD8DC';
   s.position = 'fixed';
   s.bottom = 0;
@@ -68,7 +82,7 @@ function RotateInstructions() {
   snackbarButton.href = 'https://www.google.com/get/cardboard/get-cardboard/';
   snackbarButton.innerHTML = 'get one';
   snackbarButton.target = '_blank';
-  var s = snackbarButton.style;
+  s = snackbarButton.style;
   s.float = 'right';
   s.fontWeight = 600;
   s.textTransform = 'uppercase';
@@ -81,30 +95,43 @@ function RotateInstructions() {
   snackbar.appendChild(snackbarButton);
 
   this.overlay = overlay;
+  this.treadmill = treadmill;
   this.text = text;
 
   this.hide();
 }
 
 RotateInstructions.prototype.show = function(parent) {
-  if (!parent && !this.overlay.parentElement) {
-    document.body.appendChild(this.overlay);
-  } else if (parent) {
-    if (this.overlay.parentElement && this.overlay.parentElement != parent)
+  if (parent) {
+    if (this.overlay.parentElement && this.overlay.parentElement != parent) {
       this.overlay.parentElement.removeChild(this.overlay);
+      this.overlay.parentElement.removeChild(this.treadmill);
+    }
 
     parent.appendChild(this.overlay);
+    parent.appendChild(this.treadmill);
+  }  
+
+  else {
+    if (!this.overlay.parentElement) 
+      document.body.appendChild(this.overlay);
+    if (!this.treadmill.parentElement) 
+      document.body.appendChild(this.treadmill);
   }
 
   this.overlay.style.display = 'block';
+  this.treadmill.style.pointerEvents = 'auto';
 
   var img = this.overlay.querySelector('img');
   var s = img.style;
+  this.instructionTextElement.innerHTML = this.baseInstructionText;
 
   if (Util.isLandscapeMode()) {
     s.width = '20%';
     s.marginLeft = '40%';
     s.marginTop = '3%';
+    if (Util.isIOS())
+      this.instructionTextElement.innerHTML += '<br />If the navigation bar is visible, drag up this screen to hide it.';
   } else {
     s.width = '50%';
     s.marginLeft = '25%';
@@ -112,12 +139,20 @@ RotateInstructions.prototype.show = function(parent) {
   }
 };
 
-RotateInstructions.prototype.hide = function() {
+RotateInstructions.prototype.hide = function(removeElements) {
   this.overlay.style.display = 'none';
+
+  // don't hide the treadmill until we no longer present
+  // since it is required for the iOS Firefox to keep hiding the navbar
+  this.treadmill.style.pointerEvents = 'none';
+  if (removeElements) {
+    this.treadmill.remove();
+    this.overlay.remove();
+  }
 };
 
 RotateInstructions.prototype.showTemporarily = function(ms, parent) {
-  this.show(parent);
+  this.show();
   this.timer = setTimeout(this.hide.bind(this), ms);
 };
 
