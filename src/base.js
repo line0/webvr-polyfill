@@ -24,6 +24,19 @@ var defaultLeftBounds = [0, 0, 0.5, 1];
 var defaultRightBounds = [0.5, 0, 0.5, 1];
 
 /**
+ * Event object of VR-related events
+ */
+
+function VRDisplayEvent(type, eventInitDict) {
+  var evt = new Event(type, eventInitDict);
+  evt.display = eventInitDict.display;
+  evt.reason = eventInitDict.reason;
+  return Object.setPrototypeOf(evt, VRDisplayEvent);
+}
+
+VRDisplayEvent.prototype = Object.create(Event.prototype);
+
+/**
  * The base class for all VR frame data.
  */
 
@@ -335,18 +348,17 @@ VRDisplay.prototype.getLayers = function() {
 };
 
 VRDisplay.prototype.fireVRDisplayPresentChange_ = function() {
-  // Important: unfortunately we cannot have full spec compliance here.
-  // CustomEvent custom fields all go under e.detail (so the VRDisplay ends up
-  // being e.detail.display, instead of e.display as per WebVR spec).
-  var event = new CustomEvent('vrdisplaypresentchange', {detail: {display: this}});
+  var event = new VRDisplayEvent('vrdisplaypresentchange', {
+    display: this, 
+    reason: reason || 'requested'
+  });
   window.dispatchEvent(event);
 };
 
 VRDisplay.prototype.fireVRDisplayConnect_ = function() {
-  // Important: unfortunately we cannot have full spec compliance here.
-  // CustomEvent custom fields all go under e.detail (so the VRDisplay ends up
-  // being e.detail.display, instead of e.display as per WebVR spec).
-  var event = new CustomEvent('vrdisplayconnect', {detail: {display: this}});
+  var event = new VRDisplayEvent('vrdisplayconnect', {
+    display: this
+  });
   window.dispatchEvent(event);
 };
 
@@ -456,6 +468,7 @@ PositionSensorVRDevice.prototype = new VRDevice();
 
 module.exports.VRFrameData = VRFrameData;
 module.exports.VRDisplay = VRDisplay;
+module.exports.VRDisplayEvent = VRDisplayEvent;
 module.exports.VRDevice = VRDevice;
 module.exports.HMDVRDevice = HMDVRDevice;
 module.exports.PositionSensorVRDevice = PositionSensorVRDevice;

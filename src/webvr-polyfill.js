@@ -133,8 +133,9 @@ WebVRPolyfill.prototype.enablePolyfill = function() {
     };
   }
 
-  // Provide the `VRDisplay` object.
+  // Provide the `VRDisplay` and `VRDisplayEvent` objects.
   window.VRDisplay = VRDisplay;
+  window.VRDisplayEvent = VRDisplayEvent;
 
   // Provide the `navigator.vrEnabled` property.
   if (navigator && typeof navigator.vrEnabled === 'undefined') {
