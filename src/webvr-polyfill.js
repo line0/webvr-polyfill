@@ -82,7 +82,7 @@ WebVRPolyfill.prototype.populateDevices = function() {
   }
 
   // Add a Mouse and Keyboard driven VRDisplay for desktops/laptops
-  if (!this.isMobile() && !window.WebVRConfig.MOUSE_KEYBOARD_CONTROLS_DISABLED) {
+  if (!Util.isMobile() && !window.WebVRConfig.MOUSE_KEYBOARD_CONTROLS_DISABLED) {
     vrDisplay = new MouseKeyboardVRDisplay();
     this.connectDisplay(vrDisplay);
 
@@ -94,7 +94,7 @@ WebVRPolyfill.prototype.populateDevices = function() {
   }
 
   // Uncomment to add positional tracking via webcam.
-  //if (!this.isMobile() && window.WebVRConfig.ENABLE_DEPRECATED_API) {
+  //if (!Util.isMobile() && window.WebVRConfig.ENABLE_DEPRECATED_API) {
   //  positionDevice = new WebcamPositionSensorVRDevice();
   //  this.devices.push(positionDevice);
   //}
@@ -240,15 +240,11 @@ WebVRPolyfill.prototype.NativeVRFrameData = window.VRFrameData;
 /**
  * Determine if a device is mobile.
  */
-WebVRPolyfill.prototype.isMobile = function() {
-  return /Android/i.test(navigator.userAgent) ||
-      /iPhone|iPad|iPod/i.test(navigator.userAgent);
-};
 
 WebVRPolyfill.prototype.isCardboardCompatible = function() {
   // For now, support all iOS and Android devices.
   // Also enable the WebVRConfig.FORCE_VR flag for debugging.
-  return this.isMobile() || window.WebVRConfig.FORCE_ENABLE_VR;
+  return Util.isMobile() || window.WebVRConfig.FORCE_ENABLE_VR;
 };
 
 WebVRPolyfill.prototype.isFullScreenAvailable = function() {
