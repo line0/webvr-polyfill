@@ -97,8 +97,8 @@ CardboardVRDisplay.prototype.getEyeParameters = function(whichEye) {
     fieldOfView: fieldOfView,
     offset: offset,
     // TODO: Should be able to provide better values than these.
-    renderWidth: this.deviceInfo_.device.width * 0.5 * this.bufferScale_,
-    renderHeight: this.deviceInfo_.device.height * this.bufferScale_,
+    renderWidth: 0.5 * (window.WebVRConfig.SCALE_CANVAS ? (this.deviceInfo_.device.width * this.bufferScale_) : (this.layer_ ? this.layer_.source.width : this.deviceInfo_.device.width)),
+    renderHeight: window.WebVRConfig.SCALE_CANVAS ? (this.deviceInfo_.device.height * this.bufferScale_) : (this.layer_ ? this.layer_.source.height : this.deviceInfo_.device.height)
   };
 };
 
@@ -132,8 +132,10 @@ CardboardVRDisplay.prototype.beginPresent_ = function() {
   // Provides a way to opt out of distortion
   if (this.layer_.predistorted) {
     if (!window.WebVRConfig.CARDBOARD_UI_DISABLED) {
-      gl.canvas.width = Util.getScreenWidth() * this.bufferScale_;
-      gl.canvas.height = Util.getScreenHeight() * this.bufferScale_;
+      if(window.WebVRConfig.SCALE_CANVAS) {
+        gl.canvas.width = Util.getScreenWidth() * this.bufferScale_;
+        gl.canvas.height = Util.getScreenHeight() * this.bufferScale_;
+      }
       this.cardboardUI_ = new CardboardUI(gl);
     }
   } else {

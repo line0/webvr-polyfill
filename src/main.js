@@ -78,6 +78,9 @@ window.WebVRConfig = Util.extend({
   // and just use polyfilled displays.
   // https://bugs.chromium.org/p/chromium/issues/detail?id=727969
   GET_VR_DISPLAYS_TIMEOUT: 1000,
+
+  // TODO: DESC
+  SCALE_CANVAS: true
 }, window.WebVRConfig);
 
 if (!window.WebVRConfig.DEFER_INITIALIZATION) {

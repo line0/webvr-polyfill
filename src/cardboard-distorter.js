@@ -66,7 +66,7 @@ function CardboardDistorter(gl) {
   this.realClearColor = gl.clearColor;
   this.realViewport = gl.viewport;
 
-  if (!Util.isIOS()) {
+  if (!Util.isIOS() && window.WebVRConfig.SCALE_CANVAS) {
     this.realCanvasWidth = Object.getOwnPropertyDescriptor(gl.canvas.__proto__, 'width');
     this.realCanvasHeight = Object.getOwnPropertyDescriptor(gl.canvas.__proto__, 'height');
   }
@@ -237,7 +237,7 @@ CardboardDistorter.prototype.patch = function() {
   var canvas = this.gl.canvas;
   var gl = this.gl;
 
-  if (!Util.isIOS()) {
+  if (!Util.isIOS() && window.WebVRConfig.SCALE_CANVAS) {
     canvas.width = Util.getScreenWidth() * this.bufferScale;
     canvas.height = Util.getScreenHeight() * this.bufferScale;
 
@@ -348,12 +348,16 @@ CardboardDistorter.prototype.unpatch = function() {
   var gl = this.gl;
   var canvas = this.gl.canvas;
 
-  if (!Util.isIOS()) {
+  if (!Util.isIOS() && window.WebVRConfig.SCALE_CANVAS) {
     Object.defineProperty(canvas, 'width', this.realCanvasWidth);
     Object.defineProperty(canvas, 'height', this.realCanvasHeight);
   }
-  canvas.width = this.bufferWidth;
-  canvas.height = this.bufferHeight;
+
+  if (window.WebVRConfig.SCALE_CANVAS) {
+    canvas.width = this.bufferWidth;
+    canvas.height = this.bufferHeight;
+  }
+  
 
   gl.bindFramebuffer = this.realBindFramebuffer;
   gl.enable = this.realEnable;
@@ -491,7 +495,7 @@ CardboardDistorter.prototype.submitFrame = function() {
   // width and height correctly. After each submit frame check to see what the
   // real backbuffer size has been set to and resize the fake backbuffer size
   // to match.
-  if (Util.isIOS()) {
+  if (Util.isIOS() || !window.WebVRConfig.SCALE_CANVAS) {
     var canvas = gl.canvas;
     if (canvas.width != self.bufferWidth || canvas.height != self.bufferHeight) {
       self.bufferWidth = canvas.width;
