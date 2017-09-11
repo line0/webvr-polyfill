@@ -253,19 +253,32 @@ VRDisplay.prototype.requestPresent = function(layers) {
       var onFullscreenChange = function() {
         var actualFullscreenElement = Util.getFullscreenElement();
 
+        var beginPresent = function (){
+          self.waitingForPresent_ = false;
+          self.beginPresent_();
+          // trigger another orientation change event now that we know we are in landscape mode
+          // and Util.getScreenOrientation can give a precise answer despite browser bugs
+          window.dispatchEvent(new CustomEvent('orientationchange', { detail: {
+          }}));
+          resolve(); 
+        }
+
         self.isPresenting = (fullscreenElement === actualFullscreenElement);
         if (self.isPresenting) {
           if (screen.orientation && screen.orientation.lock) {
-            screen.orientation.lock('landscape-primary').catch(function(error){
-                    console.error('screen.orientation.lock() failed due to', error.message)
-            });
-          }
-          self.waitingForPresent_ = false;
-          self.beginPresent_();
-          resolve();
+            screen.orientation.lock('landscape-primary')
+            .then(function(lock) {
+              Util.orientationLockedToLandscape = true;
+            })
+            .catch(function(error){
+              console.error('screen.orientation.lock() failed due to', error.message)
+            })
+            .then(beginPresent);
+          } else beginPresent();
         } else {
           if (screen.orientation && screen.orientation.unlock) {
             screen.orientation.unlock();
+            Util.orientationLockedToLandscape = false;
           }
           self.removeFullscreenWrapper();
           self.wakelock_.release();

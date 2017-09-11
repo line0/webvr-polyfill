@@ -47,7 +47,7 @@ function FusionPoseSensor() {
   this.worldToScreenQ = new MathUtil.Quaternion();
   this.originalPoseAdjustQ = new MathUtil.Quaternion();
   this.originalPoseAdjustQ.setFromAxisAngle(new MathUtil.Vector3(0, 0, 1),
-                                           -window.orientation * Math.PI / 180);
+                                           -Util.getScreenOrientation() * Math.PI / 180);
 
   this.setScreenTransform_();
   // Adjust this filter for being in landscape mode.
@@ -182,7 +182,7 @@ FusionPoseSensor.prototype.onMessage_ = function(event) {
 
 FusionPoseSensor.prototype.setScreenTransform_ = function() {
   this.worldToScreenQ.set(0, 0, 0, 1);
-  switch (window.orientation) {
+  switch (Util.getScreenOrientation()) {
     case 0:
       break;
     case 90:

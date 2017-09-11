@@ -81,7 +81,31 @@ Util.isFirefoxAndroid = (function() {
 })();
 
 Util.isLandscapeMode = function() {
-  return (window.orientation == 90 || window.orientation == -90);
+  if (window.screen.orientation) {
+    if (window.screen.orientation.type.match(/^landscape/)) { // https://bugzilla.mozilla.org/show_bug.cgi?id=1300157
+      return true;
+    }
+
+    if(window.screen.orientation.angle % 180 != 0)
+      return true;
+  }
+
+  // iOS says device orientation is portrait if the page is first loaded
+  // in landscape mode and only gets it correct once the orientation has changed at least once 
+  if(!Util.hasSeenIosActualPortraitMode && Util.isIOS()) { 
+    var elem = document.createElement('div');
+    elem.style.width = '100vw';
+    elem.style.height = '100vh';
+    document.body.appendChild(elem);
+    var isLandscapeMode = elem.clientWidth > elem.clientHeight;
+    document.body.removeChild(elem);
+    if (!isLandscapeMode)
+      Util.hasSeenIosActualPortraitMode = true;
+
+    return isLandscapeMode;
+  }
+
+  return (window.orientation == 90 || window.orientation == -90 || window.orientation == 270)
 };
 
 // Helper method to validate the time steps of sensor timestamps.
@@ -107,6 +131,16 @@ Util.getScreenHeight = function() {
   return Math.min(window.screen.width, window.screen.height) *
       window.devicePixelRatio;
 };
+
+Util.getScreenOrientation = function() {
+  if (Util.orientationLockedToLandscape == true)
+    return 90;
+
+  if (window.screen.orientation)
+    return window.screen.orientation.angle;
+
+  return window.orientation || 90;
+}
 
 Util.requestFullscreen = function(element) {
   if (Util.isWebViewAndroid()) {
