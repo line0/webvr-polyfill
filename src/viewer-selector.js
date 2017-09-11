@@ -25,7 +25,7 @@ var CLASS_NAME = 'webvr-polyfill-viewer-selector';
  * and hidden. Generates events when viewer parameters change. Also supports
  * saving the currently selected index in localStorage.
  */
-function ViewerSelector() {
+function ViewerSelector(deviceInfo) {
   // Try to load the selected key from local storage.
   try {
     this.selectedKey = localStorage.getItem(VIEWER_KEY);
@@ -40,6 +40,7 @@ function ViewerSelector() {
 
   this.dialog = this.createDialog_(DeviceInfo.Viewers);
   this.root = null;
+  this.deviceInfo_ = deviceInfo;
   this.onChangeCallbacks_ = [];
 }
 
@@ -51,6 +52,12 @@ ViewerSelector.prototype.show = function(root) {
   // Ensure the currently selected item is checked.
   var selected = this.dialog.querySelector('#' + this.selectedKey);
   selected.checked = true;
+
+  // sync screen size
+  var diagonal = this.deviceInfo_.getScreenDiagonal();
+  this.screenSizeSlider_.value = diagonal;
+  this.screenSizeDisplay_.innerText = diagonal.toFixed(1);
+   
 
   // Show the UI.
   this.dialog.style.display = 'block';
@@ -92,11 +99,16 @@ ViewerSelector.prototype.onSave_ = function() {
     return;
   }
 
-  this.fireOnChange_(DeviceInfo.Viewers[this.selectedKey]);
+  var screenSize = parseFloat(this.screenSizeSlider_.value);
+  this.fireOnChange_({
+    viewer: DeviceInfo.Viewers[this.selectedKey],
+    screenSize: screenSize
+  });
 
   // Attempt to save the viewer profile, but fails in private mode.
   try {
     localStorage.setItem(VIEWER_KEY, this.selectedKey);
+    localStorage.setItem(DeviceInfo.DISPLAY_SIZE_KEY, screenSize);
   } catch(error) {
     console.error('Failed to save viewer profile: %s', error);
   }
@@ -137,7 +149,40 @@ ViewerSelector.prototype.createDialog_ = function(options) {
   s.fontFamily = "'Roboto', sans-serif";
   s.boxShadow = '0px 5px 20px #666';
 
-  dialog.appendChild(this.createH1_('Select your viewer'));
+  dialog.appendChild(this.createH1_('VR Configuration'));
+
+  var selectDevice = document.createElement('h4');
+  selectDevice.innerText = 'Select your viewer:';
+  dialog.appendChild(selectDevice);
+
+  var setScreenSize = document.createElement('h4');
+  setScreenSize.innerText = 'Set your screen size:';
+  dialog.appendChild(setScreenSize);
+
+  var screenSizeInput = document.createElement('div');
+
+  var screenSizeSlider = document.createElement('input');
+  this.screenSizeSlider_ = screenSizeSlider;
+  screenSizeSlider.type = 'range';
+  screenSizeSlider.min = 4;
+  screenSizeSlider.max = 6;
+  screenSizeSlider.step = 0.1;
+  screenSizeSlider.value = 0;
+
+  this.screenSizeDisplay_ = document.createElement('span');
+  var unit = document.createElement('span');
+  unit.innerText = '"';
+
+  screenSizeInput.appendChild(screenSizeSlider);
+  screenSizeInput.appendChild(this.screenSizeDisplay_);
+  screenSizeInput.appendChild(unit);
+  
+  screenSizeSlider.addEventListener('input', function() {
+    this.screenSizeDisplay_.innerText = this.screenSizeSlider_.value;
+  }.bind(this));
+
+  dialog.appendChild(screenSizeInput);
+
   for (var id in options) {
     dialog.appendChild(this.createChoice_(id, options[id].label));
   }

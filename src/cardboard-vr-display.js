@@ -46,7 +46,7 @@ function CardboardVRDisplay() {
   this.dpdb_ = new Dpdb(true, this.onDeviceParamsUpdated_.bind(this));
   this.deviceInfo_ = new DeviceInfo(this.dpdb_.getDeviceParams());
 
-  this.viewerSelector_ = new ViewerSelector();
+  this.viewerSelector_ = new ViewerSelector(this.deviceInfo_);
   this.viewerSelector_.onChange(this.onViewerChanged_.bind(this));
 
   // Set the correct initial viewer.
@@ -259,7 +259,8 @@ CardboardVRDisplay.prototype.onResize_ = function(e) {
 };
 
 CardboardVRDisplay.prototype.onViewerChanged_ = function(viewer) {
-  this.deviceInfo_.setViewer(viewer);
+  this.deviceInfo_.setViewer(viewer.viewer);
+  this.deviceInfo_.updateDeviceParams(this.deviceInfo_.deviceParamsFromScreenDiagonal(viewer.screenSize));
 
   if (this.distorter_) {
     // Update the distortion appropriately.

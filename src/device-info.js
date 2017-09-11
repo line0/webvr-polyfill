@@ -23,6 +23,7 @@ function Device(params) {
   this.widthMeters = params.widthMeters;
   this.heightMeters = params.heightMeters;
   this.bevelMeters = params.bevelMeters;
+  this.isFallback = params.isFallback;
 }
 
 
@@ -31,7 +32,8 @@ function Device(params) {
 var DEFAULT_ANDROID = new Device({
   widthMeters: 0.110,
   heightMeters: 0.062,
-  bevelMeters: 0.004
+  bevelMeters: 0.004,
+  isFallback: true
 });
 
 // Fallback iOS device (based on iPhone6) for use when
@@ -39,7 +41,8 @@ var DEFAULT_ANDROID = new Device({
 var DEFAULT_IOS = new Device({
   widthMeters: 0.1038,
   heightMeters: 0.0584,
-  bevelMeters: 0.004
+  bevelMeters: 0.004,
+  isFallback: true
 });
 
 
@@ -100,8 +103,53 @@ DeviceInfo.prototype.setViewer = function(viewer) {
   this.distortion = new Distortion(this.viewer.distortionCoefficients);
 };
 
+DeviceInfo.prototype.deviceParamsFromScreenDiagonal = function(diagonal) {
+  var w = Util.getScreenWidth(), h = Util.getScreenHeight();
+  var dpi = Math.sqrt(Math.pow(w, 2) + Math.pow(h, 2)) / diagonal;
+
+  return {
+    xdpi: dpi, 
+    ydpi: dpi,
+    bevelMm: 3, // it's a decent guess
+  }
+};
+
+DeviceInfo.prototype.METERS_PER_INCH = 0.0254;
+DeviceInfo.DISPLAY_SIZE_KEY = 'WEBVR_CARDBOARD_DISPLAY_SIZE';
+
+DeviceInfo.prototype.getScreenDiagonal = function() {
+  var w = this.device.widthMeters / this.METERS_PER_INCH;
+  var h = this.device.heightMeters / this.METERS_PER_INCH;
+  return Math.sqrt(Math.pow(w, 2) + Math.pow(h, 2));
+};
+
+DeviceInfo.prototype.deviceFromDeviceParams_ = function(deviceParams) {
+  var metersPerPixelX = this.METERS_PER_INCH / deviceParams.xdpi;
+  var metersPerPixelY = this.METERS_PER_INCH / deviceParams.ydpi;
+  var width = Util.getScreenWidth();
+  var height = Util.getScreenHeight();
+
+  return new Device({
+      widthMeters: metersPerPixelX * width,
+      heightMeters: metersPerPixelY * height,
+      bevelMeters: deviceParams.bevelMm * 0.001,
+  });
+};
+
 DeviceInfo.prototype.determineDevice_ = function(deviceParams) {
   if (!deviceParams) {
+    var storedScreenSize;
+    try {
+      storedScreenSize =  parseFloat(localStorage.getItem(DeviceInfo.DISPLAY_SIZE_KEY));
+    } catch (error) {
+      console.error('Failed to load screen size from local storage : %s"', error);
+    }
+
+    if (storedScreenSize) {
+      console.log("Found previously stored display size (%d)", storedScreenSize);
+      return this.deviceFromDeviceParams_(this.deviceParamsFromScreenDiagonal(storedScreenSize));
+    }
+
     // No parameters, so use a default.
     if (Util.isIOS()) {
       console.warn('Using fallback iOS device measurements.');
@@ -113,16 +161,7 @@ DeviceInfo.prototype.determineDevice_ = function(deviceParams) {
   }
 
   // Compute device screen dimensions based on deviceParams.
-  var METERS_PER_INCH = 0.0254;
-  var metersPerPixelX = METERS_PER_INCH / deviceParams.xdpi;
-  var metersPerPixelY = METERS_PER_INCH / deviceParams.ydpi;
-  var width = Util.getScreenWidth();
-  var height = Util.getScreenHeight();
-  return new Device({
-    widthMeters: metersPerPixelX * width,
-    heightMeters: metersPerPixelY * height,
-    bevelMeters: deviceParams.bevelMm * 0.001,
-  });
+  return this.deviceFromDeviceParams_(deviceParams);
 };
 
 /**
