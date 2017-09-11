@@ -260,6 +260,9 @@ CardboardVRDisplay.prototype.onResize_ = function(e) {
 
     Util.safariCssSizeWorkaround(gl.canvas);
   }
+  
+  if (this.distorter_) 
+    this.distorter_.onResize();
 };
 
 CardboardVRDisplay.prototype.onViewerChanged_ = function(viewer) {
