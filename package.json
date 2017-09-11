@@ -31,5 +31,8 @@
   "repository": "googlevr/webvr-polyfill",
   "bugs": {
     "url": "https://github.com/googlevr/webvr-polyfill/issues"
+  },
+  "dependencies": {
+    "nosleep.js": "^0.7.0"
   }
 }

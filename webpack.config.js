@@ -35,4 +35,9 @@ module.exports = {
     }),
     new webpack.BannerPlugin({ banner: license, raw: true }),
   ],
+  resolve: {
+    alias: {
+      'nosleep.js': 'nosleep.js/dist/NoSleep.js',
+    },
+  },
 };
