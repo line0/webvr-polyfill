@@ -163,7 +163,7 @@ CardboardVRDisplay.prototype.beginPresent_ = function() {
     if (Util.isLandscapeMode() && Util.isMobile()) {
       // In landscape mode, temporarily show the "put into Cardboard"
       // interstitial. Otherwise, do the default thing.
-      this.rotateInstructions_.showTemporarily(3000, this.layer_.source.parentElement);
+      this.rotateInstructions_.showTemporarily(window.WebVRConfig.ROTATE_INSTRUCTIONS_DURATION, this.layer_.source.parentElement);
     } else {
       this.rotateInstructions_.update();
     }
@@ -260,7 +260,7 @@ CardboardVRDisplay.prototype.onResize_ = function(e) {
 
     Util.safariCssSizeWorkaround(gl.canvas);
   }
-  
+
   if (this.distorter_) 
     this.distorter_.onResize();
 };

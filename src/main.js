@@ -80,7 +80,10 @@ window.WebVRConfig = Util.extend({
   GET_VR_DISPLAYS_TIMEOUT: 1000,
 
   // TODO: DESC
-  SCALE_CANVAS: true
+  SCALE_CANVAS: true,
+
+  // TODO: DESC
+  ROTATE_INSTRUCTIONS_DURATION: 3000
 }, window.WebVRConfig);
 
 if (!window.WebVRConfig.DEFER_INITIALIZATION) {
