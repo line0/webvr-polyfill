@@ -66,7 +66,8 @@ Util.isWebViewAndroid = (function() {
 })();
 
 Util.isSafari = (function() {
-  var isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+  var isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent)
+                 && !(/FxiOS/.test(navigator.userAgent));
   return function() {
     return isSafari;
   };
