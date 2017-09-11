@@ -259,6 +259,7 @@ VRDisplay.prototype.requestPresent = function(layers) {
           // trigger another orientation change event now that we know we are in landscape mode
           // and Util.getScreenOrientation can give a precise answer despite browser bugs
           window.dispatchEvent(new CustomEvent('orientationchange', { detail: {
+            shouldShowViewerSelector: self.deviceInfo_ && self.deviceInfo_.device.isFallback
           }}));
           resolve(); 
         }
