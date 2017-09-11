@@ -131,7 +131,17 @@ CardboardUI.prototype.listen = function(optionsCallback, backCallback) {
       backCallback(event);
     }
   };
-  canvas.addEventListener('click', this.listener, false);
+  canvas.addEventListener('click', this.listener, true);
+
+  // Unity prevents default on touch events (which includes simulated click events)
+  // so we need to directly listen for touch events on mobile to use the CardboarUI
+  canvas.addEventListener('touchend', function(evt) {
+    // make the touch event appear like a click to the listener
+    this.listener(Util.extend(evt.changedTouches[0], {
+      stopPropagation: evt.stopPropagation.bind(evt),
+      preventDefault: evt.preventDefault.bind(evt)
+    }));
+  }.bind(this), true);
 };
 
 /**
